@@ -1,7 +1,7 @@
 use std::fs::File;
 
 use criterion::{criterion_group, criterion_main, BatchSize, Criterion};
-use day_01::part1::process;
+use day_02::part1::process;
 
 fn part1(c: &mut Criterion) {
     let input = File::open("data/part1-real.txt").expect("Can't read the file");
