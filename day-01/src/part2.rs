@@ -1,130 +1,87 @@
-use std::fs::File;
-use std::io::{BufRead, BufReader};
-use strum::IntoEnumIterator;
-use strum_macros::{Display, EnumIter};
+pub fn process(input: String) -> u32 {
+    let valid_digit_spell = [
+        ("one", '1'),
+        ("two", '2'),
+        ("three", '3'),
+        ("four", '4'),
+        ("five", '5'),
+        ("six", '6'),
+        ("seven", '7'),
+        ("eight", '8'),
+        ("nine", '9'),
+    ];
 
-#[derive(Display, Clone, Debug, EnumIter)]
-#[strum(serialize_all = "snake_case")]
-enum ValidSpelledDigit {
-    One,
-    Two,
-    Three,
-    Four,
-    Five,
-    Six,
-    Seven,
-    Eight,
-    Nine,
-}
+    input
+        .lines()
+        .map(|line| {
+            let first_char_digit = line.chars().enumerate().find(|(_, c)| c.is_digit(10));
 
-impl TryFrom<&str> for ValidSpelledDigit {
-    type Error = &'static str;
-
-    fn try_from(value: &str) -> Result<Self, Self::Error> {
-        match value {
-            "one" => Ok(ValidSpelledDigit::One),
-            "two" => Ok(ValidSpelledDigit::Two),
-            "three" => Ok(ValidSpelledDigit::Three),
-            "four" => Ok(ValidSpelledDigit::Four),
-            "five" => Ok(ValidSpelledDigit::Five),
-            "six" => Ok(ValidSpelledDigit::Six),
-            "seven" => Ok(ValidSpelledDigit::Seven),
-            "eight" => Ok(ValidSpelledDigit::Eight),
-            "nine" => Ok(ValidSpelledDigit::Nine),
-            _ => Err("Not a valid spelled digit"),
-        }
-    }
-}
-
-impl From<ValidSpelledDigit> for u32 {
-    fn from(value: ValidSpelledDigit) -> Self {
-        match value {
-            ValidSpelledDigit::One => 1,
-            ValidSpelledDigit::Two => 2,
-            ValidSpelledDigit::Three => 3,
-            ValidSpelledDigit::Four => 4,
-            ValidSpelledDigit::Five => 5,
-            ValidSpelledDigit::Six => 6,
-            ValidSpelledDigit::Seven => 7,
-            ValidSpelledDigit::Eight => 8,
-            ValidSpelledDigit::Nine => 9,
-        }
-    }
-}
-
-pub fn process(input: &File) -> u32 {
-    let reader = BufReader::new(input);
-    let mut calibration: Vec<u32> = Vec::new();
-
-    let mut first_digit: Option<u32> = None;
-    let mut last_digit: Option<u32> = None;
-    for line in reader.lines() {
-        match line {
-            Ok(l) => {
-                if !l.is_empty() {
-                    // check for digit number
-                    for c in l.chars() {
-                        if c.is_digit(10) {
-                            if first_digit.is_none() {
-                                first_digit = Some(c.into());
-                            } else {
-                                last_digit = Some(c.into());
-                            }
-                        }
+            let mut first_char_speel: Option<(usize, char)> = None;
+            for (str_val, c_val) in valid_digit_spell.iter() {
+                let search = line.find(*str_val);
+                if let Some(idx) = search {
+                    let current_idx = first_char_speel.map(|(idx, _)| idx).unwrap_or(usize::MAX);
+                    if idx <= current_idx {
+                        first_char_speel = Some((idx, *c_val));
                     }
-
-                    // check for digit written in string
-                    // Loop through the custom enum
-                    // for valid_digit in ValidSpelledDigit::iter() {
-                    //     if let Some(i) = l.find(&valid_digit.to_string()) {
-                    //         // if the first digit is already set
-                    //         if let Some(digit) = first_digit {
-                    //             dbg!(digit.clone());
-                    //             dbg!(l.clone());
-                    //             let digit_index = l.find(char::from_u32(digit).unwrap()).unwrap();
-
-                    //             if i < digit_index {
-                    //                 first_digit = Some(valid_digit.clone().into());
-                    //             }
-                    //         } else {
-                    //             first_digit = Some(valid_digit.clone().into());
-                    //         }
-
-                    //         // if the last digit is already set
-                    //         if let Some(digit) = last_digit {
-                    //             let digit_index = l.find(char::from_u32(digit).unwrap()).unwrap();
-
-                    //             if i > digit_index {
-                    //                 last_digit = Some(valid_digit.clone().into());
-                    //             }
-                    //         } else {
-                    //             last_digit = Some(valid_digit.into());
-                    //         }
-                    //     }
-                    // }
                 }
             }
-            Err(_) => println!("Error reading the line"),
-        }
-        // Calculate the sum
-        let mut res: String = "".to_string();
-        if last_digit.is_none() {
-            res.insert(0, char::from_u32(first_digit.unwrap()).unwrap());
-            res.insert(1, char::from_u32(first_digit.unwrap()).unwrap());
-        } else {
-            res.insert(0, char::from_u32(first_digit.unwrap()).unwrap());
-            res.insert(1, char::from_u32(last_digit.unwrap()).unwrap());
-        }
-        first_digit = None;
-        last_digit = None;
-        calibration.push(res.parse::<u32>().unwrap());
-    }
 
-    let mut total: u32 = 0;
-    for calibration in calibration.into_iter() {
-        total += calibration;
-    }
-    total
+            let mut first_occurence: (usize, char) = (usize::MAX, char::default());
+            if let Some((idx, val)) = first_char_digit {
+                if idx <= first_occurence.0 {
+                    first_occurence = (idx, val);
+                }
+            }
+            if let Some((idx, val)) = first_char_speel {
+                if idx <= first_occurence.0 {
+                    first_occurence = (idx, val);
+                }
+            }
+
+            let last_char_digit = line
+                .chars()
+                .rev()
+                .enumerate()
+                .find(|(_, c)| c.is_digit(10))
+                .map(|(idx, val)| (line.len() - idx - 1, val));
+
+            dbg!(last_char_digit);
+
+            let mut last_char_speel: Option<(usize, char)> = None;
+            for (str_val, c_val) in valid_digit_spell.iter() {
+                let search = line.find(*str_val);
+                if let Some(idx) = search {
+                    let current_idx = last_char_speel.map(|(idx, _)| idx).unwrap_or(0);
+                    if idx >= current_idx {
+                        last_char_speel = Some((idx, *c_val));
+                    }
+                }
+            }
+
+            let mut last_occurence: (usize, char) = (0, char::default());
+            if let Some((idx, val)) = last_char_digit {
+                if idx >= last_occurence.0 {
+                    last_occurence = (idx, val);
+                }
+            }
+            if let Some((idx, val)) = last_char_speel {
+                if idx >= last_occurence.0 {
+                    last_occurence = (idx, val);
+                }
+            }
+
+            dbg!(first_occurence);
+            dbg!(last_occurence);
+            (first_occurence.1, last_occurence.1)
+        })
+        .map(|(fo, lo)| {
+            let mut res = String::with_capacity(2);
+            res.push(fo);
+            res.push(lo);
+            res.parse::<u32>().unwrap()
+        })
+        .sum()
 }
 
 #[cfg(test)]
@@ -132,29 +89,26 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_display_enum() -> std::io::Result<()> {
-        let l = "dsf".to_string();
-        // let tets = ValidSpelledDigit::try_from(l.clone()).unwrap();
-        // let res: ValidSpelledDigit = l.try_into().unwrap();
-
-        let enum_test = ValidSpelledDigit::One;
-        assert_eq!(enum_test.to_string(), "one");
+    fn test_process_test() -> std::io::Result<()> {
+        let input = String::from("8czzpmvgmlchnkf");
+        let output = process(input);
+        assert_eq!(output, 281);
         Ok(())
     }
 
     #[test]
     fn test_process2() -> std::io::Result<()> {
-        let input = File::open("data/part2.txt")?;
-        let output = process(&input);
+        let input = std::fs::read_to_string("data/part2.txt")?;
+        let output = process(input);
         assert_eq!(output, 281);
         Ok(())
     }
 
-    // #[test]
-    // fn test_real_process() -> std::io::Result<()> {
-    //     let input = File::open("data/part1-real.txt")?;
-    //     let output = process(&input);
-    //     assert_eq!(output, 54561);
-    //     Ok(())
-    // }
+    #[test]
+    fn test_real_process2() -> std::io::Result<()> {
+        let input = std::fs::read_to_string("data/part1-real.txt")?;
+        let output = process(input);
+        assert_eq!(output, 54561);
+        Ok(())
+    }
 }

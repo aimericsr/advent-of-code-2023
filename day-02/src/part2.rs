@@ -65,68 +65,62 @@ impl Game {
     }
 }
 
-pub fn process(input: &File) -> u32 {
-    let reader = BufReader::new(input);
+pub fn process(input: String) -> u32 {
     let mut games: Vec<Game> = Vec::new();
 
     let mut current_game = Game::default();
-    for line in reader.lines() {
-        match line {
-            Ok(l) => {
-                if !l.is_empty() {
-                    let line_split: Vec<&str> = l.split(':').collect();
+    for line in input.lines() {
+        if !line.is_empty() {
+            let line_split: Vec<&str> = line.split(':').collect();
 
-                    current_game.id = line_split[0]
-                        .matches(char::is_numeric)
-                        .collect::<Vec<&str>>()
-                        .join("")
-                        .parse()
-                        .unwrap();
+            current_game.id = line_split[0]
+                .matches(char::is_numeric)
+                .collect::<Vec<&str>>()
+                .join("")
+                .parse()
+                .unwrap();
 
-                    let sets: Vec<&str> = line_split[1].split(';').collect();
+            let sets: Vec<&str> = line_split[1].split(';').collect();
 
-                    for set in sets.into_iter() {
-                        let mut current_set = Set::default();
-                        let sets: Vec<&str> = set.split(',').collect();
-                        for i in sets.into_iter() {
-                            for color in vec!["blue", "red", "green"] {
-                                if i.contains(color) {
-                                    let current_cubes: u32 = i
-                                        .matches(char::is_numeric)
-                                        .collect::<Vec<&str>>()
-                                        .join("")
-                                        .parse()
-                                        .unwrap();
+            for set in sets.into_iter() {
+                let mut current_set = Set::default();
+                let sets: Vec<&str> = set.split(',').collect();
+                for i in sets.into_iter() {
+                    for color in vec!["blue", "red", "green"] {
+                        if i.contains(color) {
+                            let current_cubes: u32 = i
+                                .matches(char::is_numeric)
+                                .collect::<Vec<&str>>()
+                                .join("")
+                                .parse()
+                                .unwrap();
 
-                                    match color {
-                                        "blue" => {
-                                            if current_cubes > current_set.blue {
-                                                current_set.blue = current_cubes;
-                                            }
-                                        }
-                                        "red" => {
-                                            if current_cubes > current_set.red {
-                                                current_set.red = current_cubes;
-                                            }
-                                        }
-                                        "green" => {
-                                            if current_cubes > current_set.green {
-                                                current_set.green = current_cubes;
-                                            }
-                                        }
-                                        _ => (),
+                            match color {
+                                "blue" => {
+                                    if current_cubes > current_set.blue {
+                                        current_set.blue = current_cubes;
                                     }
                                 }
+                                "red" => {
+                                    if current_cubes > current_set.red {
+                                        current_set.red = current_cubes;
+                                    }
+                                }
+                                "green" => {
+                                    if current_cubes > current_set.green {
+                                        current_set.green = current_cubes;
+                                    }
+                                }
+                                _ => (),
                             }
                         }
-                        current_game.sets.push(current_set);
                     }
-
-                    games.push(current_game);
-                    current_game = Game::default();
                 }
+                current_game.sets.push(current_set);
             }
-            Err(_) => println!("Error reading the line"),
+
+            games.push(current_game);
+            current_game = Game::default();
         }
     }
 
@@ -141,19 +135,20 @@ pub fn process(input: &File) -> u32 {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::fs::read_to_string;
 
     #[test]
     fn test_process_2() -> std::io::Result<()> {
-        let input = File::open("data/part1.txt")?;
-        let output = process(&input);
+        let input = read_to_string("data/part1.txt")?;
+        let output = process(input);
         assert_eq!(output, 2286);
         Ok(())
     }
 
     #[test]
     fn test_real_process_2() -> std::io::Result<()> {
-        let input = File::open("data/part1-real.txt")?;
-        let output = process(&input);
+        let input = read_to_string("data/part1-real.txt")?;
+        let output = process(input);
         assert_eq!(output, 69629);
         Ok(())
     }

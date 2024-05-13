@@ -1,34 +1,39 @@
-pub fn process(input: &str) -> u32 {
-    let number_lines = input.matches("\n").collect::<Vec<&str>>().len() + 1;
+const SYMBOLS: [char; 5] = ['*', '#', '+', '-', '$'];
+
+fn is_symbols(value: char) -> bool {
+    SYMBOLS.contains(&value)
+}
+
+fn is_beggining_of_numbers(value: char, state: Vec<Vec<char>>) {}
+
+pub fn process(input: String) -> u32 {
+    let number_lines = input.lines().count();
 
     let mut state = vec![vec!['🤯'; number_lines]; number_lines];
 
-    dbg!(&state);
-
-    // Fill in the 2D array
+    // Fill in the 2D vector
     for (index1, line) in input.lines().enumerate() {
         for (index2, charactere) in line.chars().enumerate() {
             state[index1][index2] = charactere;
         }
     }
 
-    let symbols = vec!['*', '#', '+', '-', '$'];
     // Found
-    for (index1, line) in input.lines().enumerate() {
-        for (index2, charactere) in line.chars().enumerate() {
-            if charactere.is_ascii_digit() {
+    for (row, line) in input.lines().enumerate() {
+        for (column, charactere) in line.chars().enumerate() {
+            if charactere.is_digit(10) {
+                //dbg!(charactere);
                 // check for left
-                if let Some(c) = state.get(index1 - 1) {
-                    if let Some(c2) = c.get(index2) {
-
+                if column != 0 {
+                    let val = state[row][column - 1];
+                    if is_symbols(val) {
+                        dbg!(charactere);
                     }
                 }
-                //if state[][]
             }
         }
     }
 
-    dbg!(state);
     34
 }
 
@@ -38,7 +43,7 @@ mod tests {
 
     #[test]
     fn test_process_1() -> std::io::Result<()> {
-        let input = include_str!("../data/part1.txt");
+        let input = std::fs::read_to_string("data/part1.txt")?;
         let output = process(input);
         assert_eq!(output, 8);
         Ok(())
@@ -46,7 +51,7 @@ mod tests {
 
     #[test]
     fn test_real_process_1() -> std::io::Result<()> {
-        let input = include_str!("../data/part1-real.txt");
+        let input = std::fs::read_to_string("data/part1-real.txt")?;
         let output = process(input);
         assert_eq!(output, 2632);
         Ok(())
